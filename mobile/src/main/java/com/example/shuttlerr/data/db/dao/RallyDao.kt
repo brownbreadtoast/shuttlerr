@@ -1,0 +1,16 @@
+package com.example.shuttlerr.data.db.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.shuttlerr.data.db.entities.RallyEntity
+
+@Dao
+interface RallyDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(rally: RallyEntity)
+
+    @Query("SELECT * FROM rallies WHERE gameId = :gameId ORDER BY rallyNumber")
+    suspend fun getRalliesForGame(gameId: String): List<RallyEntity>
+}
