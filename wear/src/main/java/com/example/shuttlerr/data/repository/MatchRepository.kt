@@ -14,6 +14,10 @@ interface MatchRepository {
         totalGames: Int,
         initialServer: Player,
         initialServerSlot: DoublesSlot = DoublesSlot.ONE,
+        teamAPlayer1: String = "A1",
+        teamAPlayer2: String = "A2",
+        teamBPlayer1: String = "B1",
+        teamBPlayer2: String = "B2",
     )
 
     suspend fun getMatchWithGamesAndRallies(matchId: String): Match?

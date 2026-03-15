@@ -1,5 +1,11 @@
 package com.example.shuttlerr.domain.model
 
+/** Returns the first two characters of a player name, capitalised — e.g. "akshay" → "Ak". */
+fun String.initials(): String = take(2).replaceFirstChar { it.uppercaseChar() }
+
+/** Concatenates initials of two players to form a team name — e.g. "Ak" + "Ra" = "AkRa". */
+fun teamName(p1: String, p2: String): String = p1.initials() + p2.initials()
+
 data class PlayerNames(
     val a1: String = "A1",
     val a2: String = "A2",

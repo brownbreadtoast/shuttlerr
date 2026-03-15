@@ -32,6 +32,10 @@ class MatchRepositoryImpl @Inject constructor(
         totalGames: Int,
         initialServer: Player,
         initialServerSlot: DoublesSlot,
+        teamAPlayer1: String,
+        teamAPlayer2: String,
+        teamBPlayer1: String,
+        teamBPlayer2: String,
     ) {
         val now = System.currentTimeMillis()
         matchDao.insert(
@@ -44,6 +48,10 @@ class MatchRepositoryImpl @Inject constructor(
                 initialServerPlayer = initialServer.name,
                 initialCourtSideA = CourtSide.RIGHT.name, // BWF: score 0 (even) → right service court
                 initialServerSlot = initialServerSlot.name,
+                teamAPlayer1 = teamAPlayer1,
+                teamAPlayer2 = teamAPlayer2,
+                teamBPlayer1 = teamBPlayer1,
+                teamBPlayer2 = teamBPlayer2,
             )
         )
         gameDao.insert(

@@ -45,6 +45,8 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import com.example.shuttlerr.domain.model.DoublesSlot
 import com.example.shuttlerr.domain.model.Player
+import com.example.shuttlerr.domain.model.initials
+import com.example.shuttlerr.domain.model.teamName
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
@@ -82,36 +84,29 @@ fun ActiveMatchScreen(
     val state = uiState ?: return
 
     // Compute display labels per team
+    val names = state.playerNames
+    val labelA = if (state.isDoubles) teamName(names.a1, names.a2) else names.a1.initials()
+    val labelB = if (state.isDoubles) teamName(names.b1, names.b2) else names.b1.initials()
+
     val serverName = if (state.isDoubles) {
-        val names = state.playerNames
         when {
-            state.currentServer == Player.A && state.currentServerSlot == DoublesSlot.ONE -> names.a1
-            state.currentServer == Player.A -> names.a2
-            state.currentServerSlot == DoublesSlot.ONE -> names.b1
-            else -> names.b2
+            state.currentServer == Player.A && state.currentServerSlot == DoublesSlot.ONE -> names.a1.initials()
+            state.currentServer == Player.A -> names.a2.initials()
+            state.currentServerSlot == DoublesSlot.ONE -> names.b1.initials()
+            else -> names.b2.initials()
         }
-    } else state.currentServer.name
-
-    val labelA = if (state.isDoubles) {
-        if (state.currentServer == Player.A) serverName else "A"
-    } else "A"
-
-    val labelB = if (state.isDoubles) {
-        if (state.currentServer == Player.B) serverName else "B"
-    } else "B"
+    } else names.a1.initials().takeIf { state.currentServer == Player.A } ?: names.b1.initials()
 
     // Court position rows: left-court player → right-court player for each team
     val courtRowA: Pair<String, String>? = if (state.isDoubles) {
-        val names = state.playerNames
-        val leftA = if (state.rightCourtSlotA == DoublesSlot.ONE) names.a2 else names.a1
-        val rightA = if (state.rightCourtSlotA == DoublesSlot.ONE) names.a1 else names.a2
+        val leftA = if (state.rightCourtSlotA == DoublesSlot.ONE) names.a2.initials() else names.a1.initials()
+        val rightA = if (state.rightCourtSlotA == DoublesSlot.ONE) names.a1.initials() else names.a2.initials()
         leftA to rightA
     } else null
 
     val courtRowB: Pair<String, String>? = if (state.isDoubles) {
-        val names = state.playerNames
-        val leftB = if (state.rightCourtSlotB == DoublesSlot.ONE) names.b2 else names.b1
-        val rightB = if (state.rightCourtSlotB == DoublesSlot.ONE) names.b1 else names.b2
+        val leftB = if (state.rightCourtSlotB == DoublesSlot.ONE) names.b2.initials() else names.b1.initials()
+        val rightB = if (state.rightCourtSlotB == DoublesSlot.ONE) names.b1.initials() else names.b2.initials()
         leftB to rightB
     } else null
 
@@ -139,7 +134,7 @@ fun ActiveMatchScreen(
                         text = when {
                             state.showMidGameSwitchPrompt -> "Switch sides!"
                             state.isDeuce -> "DEUCE"
-                            state.isDoubles -> "$serverName · ${state.serviceSide.name.lowercase()}"
+                            state.isDoubles -> "$serverName serves · ${state.serviceSide.name.lowercase()}"
                             else -> "${state.serviceSide.name.lowercase()} · ${state.serverCourtSide.name.lowercase()}"
                         },
                         style = MaterialTheme.typography.labelSmall,

@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.shuttlerr.data.db.ShuttlerrDatabase
 import com.example.shuttlerr.data.db.dao.GameDao
 import com.example.shuttlerr.data.db.dao.MatchDao
+import com.example.shuttlerr.data.db.dao.PlayerDao
 import com.example.shuttlerr.data.db.dao.RallyDao
 import dagger.Module
 import dagger.Provides
@@ -21,7 +22,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): ShuttlerrDatabase =
         Room.databaseBuilder(context, ShuttlerrDatabase::class.java, "shuttlerr.db")
-            .addMigrations(ShuttlerrDatabase.MIGRATION_1_2)
+            .addMigrations(ShuttlerrDatabase.MIGRATION_1_2, ShuttlerrDatabase.MIGRATION_2_3)
             .build()
 
     @Provides
@@ -32,4 +33,7 @@ object DatabaseModule {
 
     @Provides
     fun provideRallyDao(db: ShuttlerrDatabase): RallyDao = db.rallyDao()
+
+    @Provides
+    fun providePlayerDao(db: ShuttlerrDatabase): PlayerDao = db.playerDao()
 }
