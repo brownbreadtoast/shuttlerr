@@ -1,2 +1,2 @@
 # shuttlerr
-A WearOS application to capture data during Badminton rallies
+A vibe-coded WearOS application to track score during Badminton rallies. 
