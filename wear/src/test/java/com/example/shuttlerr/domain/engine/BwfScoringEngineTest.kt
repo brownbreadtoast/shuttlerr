@@ -9,7 +9,6 @@ import com.example.shuttlerr.domain.model.Player
 import com.example.shuttlerr.domain.model.ServiceSide
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -77,21 +76,21 @@ class BwfScoringEngineTest {
         assertEquals(Player.B, state.currentServer)
     }
 
-    // ---- Service side ----
+    // ---- Service side (recorded in rally) ----
 
     @Test
     fun `server at even score serves from EVEN (right box)`() {
-        // A serves, A's score is 0 (even)
-        val uiState = engine.toUiState(initialState, null)
-        assertEquals(ServiceSide.EVEN, uiState.serviceSide)
+        // A serves, A's score is 0 (even) — service side is recorded in the rally
+        val state = engine.applyRally(initialState, Player.A, null, 1000)
+        assertEquals(ServiceSide.EVEN, state.currentGame.rallies.last().serviceSide)
     }
 
     @Test
     fun `server at odd score serves from ODD (left box)`() {
-        // A scores once → A's score = 1 (odd), A serves
-        val state = engine.applyRally(initialState, Player.A, null, 1000)
-        val uiState = engine.toUiState(state, null)
-        assertEquals(ServiceSide.ODD, uiState.serviceSide)
+        // A scores once → A's score = 1 (odd), A serves next
+        var state = engine.applyRally(initialState, Player.A, null, 1000)
+        state = engine.applyRally(state, Player.A, null, 1000)
+        assertEquals(ServiceSide.ODD, state.currentGame.rallies.last().serviceSide)
     }
 
     // ---- Undo ----
@@ -129,22 +128,20 @@ class BwfScoringEngineTest {
     fun `game winner detected in toUiState`() {
         var state = initialState
         repeat(21) { state = engine.applyRally(state, Player.A, null, 1000) }
-        val uiState = engine.toUiState(state, null)
+        val uiState = engine.toUiState(state)
         assertEquals(Player.A, uiState.gameWinner)
     }
 
-    // ---- Deuce ----
+    // ---- Deuce (no winner at 20-20) ----
 
     @Test
-    fun `isDeuce true at 20-20`() {
+    fun `no game winner at 20-20`() {
         var state = initialState
-        // Score A=20, B=20
         repeat(20) {
             state = engine.applyRally(state, Player.A, null, 1000)
             state = engine.applyRally(state, Player.B, null, 1000)
         }
-        val uiState = engine.toUiState(state, null)
-        assertTrue(uiState.isDeuce)
+        val uiState = engine.toUiState(state)
         assertNull(uiState.gameWinner)
     }
 
@@ -157,7 +154,7 @@ class BwfScoringEngineTest {
         }
         // 29-29 — A scores once more → 30-29
         state = engine.applyRally(state, Player.A, null, 1000)
-        val uiState = engine.toUiState(state, null)
+        val uiState = engine.toUiState(state)
         assertEquals(Player.A, uiState.gameWinner)
     }
 
@@ -173,10 +170,8 @@ class BwfScoringEngineTest {
         )
         val initialCourtSideA = state3.courtSideA
         var state = state3
-        // Score 10 points for A
         repeat(10) { state = engine.applyRally(state, Player.A, null, 1000) }
         assertFalse(state.hasMidGameSwitchHappened)
-        // 11th point triggers switch
         state = engine.applyRally(state, Player.A, null, 1000)
         assertTrue(state.hasMidGameSwitchHappened)
         assertEquals(initialCourtSideA.let { if (it == CourtSide.LEFT) CourtSide.RIGHT else CourtSide.LEFT }, state.courtSideA)
@@ -189,17 +184,17 @@ class BwfScoringEngineTest {
         assertFalse(state.hasMidGameSwitchHappened)
     }
 
-    // ---- canUndo ----
+    // ---- Rally history ----
 
     @Test
-    fun `canUndo false when no rallies`() {
-        assertFalse(engine.toUiState(initialState, null).canUndo)
+    fun `no rallies on fresh state`() {
+        assertTrue(initialState.currentGame.rallies.isEmpty())
     }
 
     @Test
-    fun `canUndo true after first rally`() {
+    fun `rally recorded after first point`() {
         val state = engine.applyRally(initialState, Player.A, null, 1000)
-        assertTrue(engine.toUiState(state, null).canUndo)
+        assertTrue(state.currentGame.rallies.isNotEmpty())
     }
 
     // ---- Helpers ----
@@ -214,7 +209,7 @@ class BwfScoringEngineTest {
         val gameId = "game-$gameNumber"
         val match = Match(
             id = matchId,
-            format = GameFormat.SINGLES,
+            format = GameFormat.SIMPLIFIED,
             totalGames = totalGames,
             startedAtMs = 0L,
             initialServerPlayer = initialServer,
